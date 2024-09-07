@@ -27,7 +27,8 @@ from base_miner.UCF.config.constants import (
     WEIGHTS_HF_PATH,
     DFB_CKPT,
     BACKBONE_CKPT,
-    DLIB_FACE_PREDICTOR_PATH
+    DLIB_FACE_PREDICTOR_PATH,
+    DLIB_FACE_DETECTOR_PATH
 )
 
 class UCF:
@@ -49,7 +50,7 @@ class UCF:
     
     def __init__(self, config_path=CONFIG_PATH, weights_dir=WEIGHTS_PATH, weights_hf_repo_name=WEIGHTS_HF_PATH,
                  ucf_checkpoint_name=DFB_CKPT, backbone_checkpoint_name=BACKBONE_CKPT,
-                 predictor_path=DLIB_FACE_PREDICTOR_PATH, specific_task_number=5):
+                 predictor_path=DLIB_FACE_PREDICTOR_PATH, specific_task_number=5, face_detector_path=DLIB_FACE_DETECTOR_PATH):
         
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self.config_path = Path(config_path)
@@ -60,7 +61,8 @@ class UCF:
         self.config = self.load_config()
         self.config['specific_task_number'] = specific_task_number
 
-        self.face_detector = dlib.get_frontal_face_detector()
+        #self.face_detector = dlib.get_frontal_face_detector()
+        self.face_detector = dlib.cnn_face_detection_model_v1(face_detector_path)
         self.predictor_path = predictor_path
         if not os.path.exists(predictor_path):
             bt.logging.error(f"Predictor path does not exist: {predictor_path}")
@@ -223,6 +225,7 @@ class UCF:
         
         # Extract all landmarks from the aligned face
         face_align = self.face_detector(cropped_face, 1)
+
         if len(face_align) == 0:
             return None, None, None
         landmark = self.face_predictor(cropped_face, face_align[0])

@@ -17,3 +17,4 @@ BM_FACE_CKPT = "ucf_bitmind_face.pth"
 BM_18K_CKPT = "ucf-bitmind-18k.pth"
 
 DLIB_FACE_PREDICTOR_PATH = os.path.abspath(os.path.join(UCF_BASE_PATH, "../../bitmind/dataset_processing/dlib_tools/shape_predictor_81_face_landmarks.dat"))
+DLIB_FACE_DETECTOR_PATH = os.path.abspath(os.path.join(UCF_BASE_PATH, "../../bitmind/dataset_processing/dlib_tools/mmod_human_face_detector.dat"))

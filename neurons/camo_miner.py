@@ -171,6 +171,7 @@ class Miner(BaseMinerNeuron):
             image_bytes = base64.b64decode(synapse.image)
             image = Image.open(io.BytesIO(image_bytes))
 
+            s = time.time()
             # Determine image content type.
             image_type, faces = await self.classify_image(image, use_object_detection=False)
 
@@ -183,6 +184,7 @@ class Miner(BaseMinerNeuron):
                 image_tensor = self.detectors['general'].preprocess(image)
                 pred = self.detectors['general'].infer(image_tensor)
 
+            bt.logging.info(f"TIME: {time.time() - s}")
             synapse.prediction = pred
             
         except Exception as e:
