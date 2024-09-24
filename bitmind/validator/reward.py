@@ -106,3 +106,34 @@ def get_rewards(
             miner_rewards.append(0.0)
 
     return np.array(miner_rewards)
+
+
+def old_get_rewards(
+        label: float,
+        responses: List,
+    ) -> np.array:
+    """
+    Returns a tensor of rewards for the given query and responses.
+
+    Args:
+    - label (float): 1 if image was fake, 0 if real.
+    - responses (List[float]): A list of responses from the miners.
+
+    Returns:
+    - np.array: A tensor of rewards for the given query and responses.
+    """
+    miner_rewards = []
+    for uid in range(len(responses)):
+        try:
+            pred = responses[uid]
+            reward = 1. if np.round(pred) == label else 0.
+            reward *= count_penalty(pred)
+            miner_rewards.append(reward)
+
+        except Exception as e:
+            bt.logging.error("Couldn't count miner reward for {}, his predictions = {} and his labels = {}".format(
+                uid, responses[uid], label))
+            bt.logging.exception(e)
+            miner_rewards.append(0)
+
+    return np.array(miner_rewards)%

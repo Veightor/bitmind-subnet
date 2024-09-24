@@ -25,13 +25,33 @@ import pandas as pd
 import numpy as np
 import os
 import wandb
+import joblib
 
 from bitmind.utils.uids import get_random_uids
 from bitmind.utils.data import sample_dataset_index_name
 from bitmind.protocol import prepare_image_synapse
-from bitmind.validator.reward import get_rewards
+from bitmind.validator.reward import get_rewards, old_get_rewards
 from bitmind.image_transforms import random_aug_transforms
 
+
+def log_rewards(rewards, old_rewards, uids):
+    def update_rewards(file_path, new_data):
+        if os.path.exists(file_path):
+            rewards_dict = joblib.load(file_path)
+            for uid, reward in new_data:
+                rewards_dict[uid].append(reward)
+        else:
+            rewards_dict = {uid: [reward] for uid, reward in new_data}
+        joblib.dump(rewards_dict, file_path)
+
+    rewards_history_path = 'rewards_history.pkl'
+    old_rewards_history_path = 'old_rewards_history.pkl'
+
+    # Update new rewards
+    update_rewards(rewards_history_path, zip(uids, rewards))
+
+    # Update old rewards
+    update_rewards(old_rewards_history_path, zip(uids, old_rewards))
 
 async def forward(self):
     """
@@ -134,6 +154,9 @@ async def forward(self):
     ]
 
     rewards = get_rewards(label=label, responses=responses, axons=axons, performance_tracker=self.performance_tracker)
+    old_rewards = old_get_rewards(label=label, responses=responses)
+
+    log_rewards(rewards, old_rewards, miner_uids)
     
     # Logging image source and verification details
     source_name = wandb_data['model'] if 'model' in wandb_data else wandb_data['dataset']
