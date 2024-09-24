@@ -136,11 +136,20 @@ async def forward(self):
 
     bt.logging.info(f"Querying {len(miner_uids)} miners...")
     axons = [self.metagraph.axons[uid] for uid in miner_uids]
-    responses = await self.dendrite(
-        axons=axons,
-        synapse=prepare_image_synapse(image=image),
-        deserialize=True
-    )
+    responses = []
+    for axon in axons:
+        try:
+            response = await self.dendrite(
+                axons=[axon],
+                synapse=prepare_image_synapse(image=image),
+                deserialize=True
+            )
+        except Exception as e:
+            print(e)
+            responses.append(-1)
+            continue
+        responses.append(response[0])
+
 
     # update logging data
     wandb_data['data_aug_params'] = data_aug_params
