@@ -37,6 +37,7 @@ def count_penalty(y_pred: float) -> float:
 def get_rewards(
         label: float,
         responses: List[float],
+        uids: List[int],
         axons: List[bt.axon],
         performance_tracker
     ) -> np.array:
@@ -54,8 +55,7 @@ def get_rewards(
     - np.array: An array of rewards for the given label and responses.
     """
     miner_rewards = []
-    for axon, pred_prob in zip(axons,responses):
-        uid = axon.uid
+    for axon, uid, pred_prob in zip(axons, uids, responses):
         try:
             miner_hotkey = axon.hotkey
             pred_prob = responses[uid]

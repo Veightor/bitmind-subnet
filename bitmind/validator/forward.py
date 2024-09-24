@@ -153,7 +153,7 @@ async def forward(self):
         for y_hat, y in zip(responses, [label] * len(responses))
     ]
 
-    rewards = get_rewards(label=label, responses=responses, axons=axons, performance_tracker=self.performance_tracker)
+    rewards = get_rewards(label=label, responses=responses, uids=uids, axons=axons, performance_tracker=self.performance_tracker)
     old_rewards = old_get_rewards(label=label, responses=responses)
 
     log_rewards(rewards, old_rewards, miner_uids)
