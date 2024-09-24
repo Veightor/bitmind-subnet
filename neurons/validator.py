@@ -50,8 +50,8 @@ class MinerPerformanceTracker:
         self.prediction_history[uid].append(prediction)
         self.label_history[uid].append(label)
 
-    def get_metrics(self, uid: int):
-        predictions = np.array(self.prediction_history[uid])
+    def get_metrics(self, uid: int, n_predictions: int = 100):
+        predictions = np.array(self.prediction_history[uid][-n_predictions:])
         labels = np.array(self.label_history[uid])
 
         # Calculate performance metrics

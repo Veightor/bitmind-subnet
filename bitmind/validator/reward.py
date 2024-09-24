@@ -39,7 +39,8 @@ def get_rewards(
         responses: List[float],
         uids: List[int],
         axons: List[bt.axon],
-        performance_tracker
+        performance_tracker,
+        num_prev_preds=100
     ) -> np.array:
     """
     Returns an array of rewards for the given label and miner responses.
@@ -68,11 +69,11 @@ def get_rewards(
             performance_tracker.update(uid, pred, true_label, miner_hotkey)
 
             # Get historical performance metrics
-            metrics = performance_tracker.get_metrics(uid)
+            metrics = performance_tracker.get_metrics(uid, num_prev_preds)
             
             # Calculate ramp-up factor (reaches 1.0 at 100 predictions)
             num_predictions = len(performance_tracker.prediction_history[uid])
-            ramp_up_factor = min(num_predictions / 100, 1.0)
+            ramp_up_factor = min(num_predictions / num_prev_preds, 1.0)
 
 
             # Calculate current reward as a linear combination of metrics
