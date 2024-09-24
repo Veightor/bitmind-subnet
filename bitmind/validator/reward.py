@@ -55,8 +55,8 @@ def get_rewards(
     """
     miner_rewards = []
     for axon, pred_prob in zip(axons,responses):
+        uid = axon.uid
         try:
-            uid = axon.uid
             miner_hotkey = axon.hotkey
             pred_prob = responses[uid]
             # Apply penalty if prediction is invalid
