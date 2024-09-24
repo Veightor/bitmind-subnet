@@ -39,7 +39,10 @@ def log_rewards(rewards, old_rewards, uids):
         if os.path.exists(file_path):
             rewards_dict = joblib.load(file_path)
             for uid, reward in new_data:
-                rewards_dict[uid].append(reward)
+                if uid not in rewards_dict:
+                    rewards_dict[uid] = [reward]
+                else:
+                    rewards_dict[uid].append(reward)
         else:
             rewards_dict = {uid: [reward] for uid, reward in new_data}
         joblib.dump(rewards_dict, file_path)
