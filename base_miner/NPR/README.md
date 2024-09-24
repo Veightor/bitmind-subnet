@@ -7,22 +7,21 @@ Our base miner code is taken from the [NPR-DeepfakeDetection respository](https:
 
 <hr style="border:2px solid gray">
 
-
 <p align="center">
 	<br>
 	Beijing Jiaotong University, YanShan University, A*Star
 </p>
 <br>
 
-
 <img src="./NPR.png" width="100%" alt="overall pipeline">
 
 Reference github repository for the paper [Rethinking the Up-Sampling Operations in CNN-based Generative Network for Generalizable Deepfake Detection](https://arxiv.org/abs/2312.10461).
+
 ```
-@misc{tan2023rethinking,
-      title={Rethinking the Up-Sampling Operations in CNN-based Generative Network for Generalizable Deepfake Detection}, 
+@misc{tan2024rethinking,
+      title={Rethinking the Up-Sampling Operations in CNN-based Generative Network for Generalizable Deepfake Detection},
       author={Chuangchuang Tan and Huan Liu and Yao Zhao and Shikui Wei and Guanghua Gu and Ping Liu and Yunchao Wei},
-      year={2023},
+      year={2024},
       eprint={2312.10461},
       archivePrefix={arXiv},
       primaryClass={cs.CV}
@@ -30,23 +29,28 @@ Reference github repository for the paper [Rethinking the Up-Sampling Operations
 ```
 
 ## News 🆕
+
 - `2024/02`: NPR is accepted by CVPR 2024! Congratulations and thanks to my all co-authors!
 
-
-
 ## Environment setup
-**Classification environment:** 
+
+**Classification environment:**
 We recommend installing the required packages by running the command:
+
 ```sh
 pip install -r requirements.txt
 ```
+
 In order to ensure the reproducibility of the results, we provide the following suggestions：
+
 - Docker image: nvcr.io/nvidia/tensorflow:21.02-tf1-py3
-- Conda environment: [./pytorch18/bin/python](https://drive.google.com/file/d/16MK7KnPebBZx5yeN6jqJ49k7VWbEYQPr/view) 
+- Conda environment: [./pytorch18/bin/python](https://drive.google.com/file/d/16MK7KnPebBZx5yeN6jqJ49k7VWbEYQPr/view)
 - Random seed during testing period: [Random seed](https://github.com/chuangchuangtan/NPR-DeepfakeDetection/blob/b4e1bfa59ec58542ab5b1e78a3b75b54df67f3b8/test.py#L14)
 
 ## Getting the data
-Download dataset from [CNNDetection CVPR2020](https://github.com/peterwang512/CNNDetection), [UniversalFakeDetect CVPR2023](https://github.com/Yuheng-Li/UniversalFakeDetect) ([googledrive](https://drive.google.com/drive/folders/1nkCXClC7kFM01_fqmLrVNtnOYEFPtWO-?usp=drive_link)), [DIRE 2023ICCV](https://github.com/ZhendongWang6/DIRE) ([googledrive](https://drive.google.com/drive/folders/1jZE4hg6SxRvKaPYO_yyMeJN_DOcqGMEf?usp=sharing)), [GANGen-Detection](https://github.com/chuangchuangtan/GANGen-Detection) ([googledrive](https://drive.google.com/drive/folders/11E0Knf9J1qlv2UuTnJSOFUjIIi90czSj?usp=sharing)), Diffusion1kStep [googledrive](https://drive.google.com/drive/folders/14f0vApTLiukiPvIHukHDzLujrvJpDpRq?usp=sharing).
+
+Download dataset from [CNNDetection CVPR2020](https://github.com/peterwang512/CNNDetection), [UniversalFakeDetect CVPR2024](https://github.com/Yuheng-Li/UniversalFakeDetect) ([googledrive](https://drive.google.com/drive/folders/1nkCXClC7kFM01_fqmLrVNtnOYEFPtWO-?usp=drive_link)), [DIRE 2024ICCV](https://github.com/ZhendongWang6/DIRE) ([googledrive](https://drive.google.com/drive/folders/1jZE4hg6SxRvKaPYO_yyMeJN_DOcqGMEf?usp=sharing)), [GANGen-Detection](https://github.com/chuangchuangtan/GANGen-Detection) ([googledrive](https://drive.google.com/drive/folders/11E0Knf9J1qlv2UuTnJSOFUjIIi90czSj?usp=sharing)), Diffusion1kStep [googledrive](https://drive.google.com/drive/folders/14f0vApTLiukiPvIHukHDzLujrvJpDpRq?usp=sharing).
+
 ```
 pip install gdown==4.7.1
 
@@ -55,17 +59,21 @@ chmod 777 ./download_dataset.sh
 ./download_dataset.sh
 ```
 
-## Training the model 
+## Training the model
+
 ```sh
 CUDA_VISIBLE_DEVICES=0 python train.py --name 4class-resnet-car-cat-chair-horse --dataroot {CNNDetection-Path} --classes car,cat,chair,horse --batch_size 32 --delr_freq 10 --lr 0.0002 --niter 50
 ```
 
 ## Testing the detector
+
 Modify the dataroot in test.py.
+
 ```sh
 CUDA_VISIBLE_DEVICES=0 python test.py --model_path ./NPR.pth  -batch_size {BS}
 ```
-<!-- 
+
+<!--
 ## Detection Results
 
 | <font size=2>Method</font>|<font size=2>ProGAN</font> |       |<font size=2>StyleGAN</font>|     |<font size=2>StyleGAN2</font>|    |<font size=2>BigGAN</font>|       |<font size=2>CycleGAN</font> |      |<font size=2>StarGAN</font>|       |<font size=2>GauGAN</font> |       |<font size=2>Deepfake</font>|    | <font size=2>Mean</font> |      |

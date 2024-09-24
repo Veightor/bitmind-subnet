@@ -1,7 +1,7 @@
 # The MIT License (MIT)
-# Copyright © 2023 Yuma Rao
-# developer: dubm
-# Copyright © 2023 Bitmind
+# Copyright © 2024 Yuma Rao
+# developer: dubm, kenobijon
+# Copyright © 2024 Bitmind
 
 # Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
 # documentation files (the “Software”), to deal in the Software without restriction, including without limitation
@@ -25,13 +25,36 @@ import pandas as pd
 import numpy as np
 import os
 import wandb
+import joblib
 
 from bitmind.utils.uids import get_random_uids
 from bitmind.utils.data import sample_dataset_index_name
 from bitmind.protocol import prepare_image_synapse
-from bitmind.validator.reward import get_rewards
+from bitmind.validator.reward import get_rewards, old_get_rewards
 from bitmind.image_transforms import random_aug_transforms
 
+
+def log_rewards(rewards, old_rewards, uids):
+    def update_rewards(file_path, new_data):
+        if os.path.exists(file_path):
+            rewards_dict = joblib.load(file_path)
+            for uid, reward in new_data:
+                if uid not in rewards_dict:
+                    rewards_dict[uid] = [reward]
+                else:
+                    rewards_dict[uid].append(reward)
+        else:
+            rewards_dict = {uid: [reward] for uid, reward in new_data}
+        joblib.dump(rewards_dict, file_path)
+
+    rewards_history_path = 'rewards_history.pkl'
+    old_rewards_history_path = 'old_rewards_history.pkl'
+
+    # Update new rewards
+    update_rewards(rewards_history_path, zip(uids, rewards))
+
+    # Update old rewards
+    update_rewards(old_rewards_history_path, zip(uids, old_rewards))
 
 async def forward(self):
     """
@@ -115,23 +138,37 @@ async def forward(self):
     data_aug_params = random_aug_transforms.params
 
     bt.logging.info(f"Querying {len(miner_uids)} miners...")
-    responses = await self.dendrite(
-        axons=[self.metagraph.axons[uid] for uid in miner_uids],
-        synapse=prepare_image_synapse(image=image),
-        deserialize=True
-    )
+    axons = [self.metagraph.axons[uid] for uid in miner_uids]
+    responses = []
+    for axon in axons:
+        try:
+            response = await self.dendrite(
+                axons=[axon],
+                synapse=prepare_image_synapse(image=image),
+                deserialize=True
+            )
+        except Exception as e:
+            print(e)
+            responses.append(-1)
+            continue
+        responses.append(response[0])
+
 
     # update logging data
     wandb_data['data_aug_params'] = data_aug_params
     wandb_data['label'] = label
     wandb_data['miner_uids'] = list(miner_uids)
+    wandb_data['miner_hotkeys'] = list([axon.hotkey for axon in axons])
     wandb_data['predictions'] = responses
     wandb_data['correct'] = [
         np.round(y_hat) == y
         for y_hat, y in zip(responses, [label] * len(responses))
     ]
 
-    rewards = get_rewards(label=label, responses=responses)
+    rewards = get_rewards(label=label, responses=responses, uids=miner_uids, axons=axons, performance_tracker=self.performance_tracker)
+    old_rewards = old_get_rewards(label=label, responses=responses)
+
+    log_rewards(rewards, old_rewards, miner_uids)
     
     # Logging image source and verification details
     source_name = wandb_data['model'] if 'model' in wandb_data else wandb_data['dataset']

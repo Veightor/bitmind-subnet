@@ -28,7 +28,62 @@ from bitmind.synthetic_image_generation.synthetic_image_generator import Synthet
 from bitmind.image_dataset import ImageDataset
 from bitmind.constants import DATASET_META, WANDB_PROJECT, WANDB_ENTITY
 import bitmind
+# fix imports
+import numpy as np
+from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, matthews_corrcoef
+from typing import Dict, List
 
+class MinerPerformanceTracker:
+    def __init__(self):
+        # Stores historical predictions and labels for each miner
+        self.prediction_history: Dict[int, List[int]] = {}
+        self.label_history: Dict[int, List[int]] = {}
+        self.miner_addresses: Dict[int, str] = {}
+
+    def update(self, uid: int, prediction: int, label: int, miner_hotkey: str):
+        # Reset histories if miner is new or miner address has changed
+        if uid not in self.prediction_history or self.miner_addresses[uid] != miner_hotkey:
+            self.prediction_history[uid] = []
+            self.label_history[uid] = []
+            self.miner_addresses[uid] = miner_hotkey
+        # Update histories
+        self.prediction_history[uid].append(prediction)
+        self.label_history[uid].append(label)
+
+    def get_metrics(self, uid: int, n_predictions: int = 100):
+        recent_preds = self.prediction_history[uid][-n_predictions:]
+        recent_labels = self.label_history[uid][-n_predictions:]        
+        keep_idx = [i for i, p in enumerate(recent_preds) if p != -1]
+        predictions = np.array([recent_preds[i] for i in keep_idx])
+        labels = np.array([recent_labels[i] for i in keep_idx])
+        print("computing metrics")
+
+        accuracy = 0
+        precision = 0
+        recall = 0
+        f1 = 0
+        # MCC requires at least two classes in labels
+        mcc = 0
+
+        if len(labels) > 0 and len(predictions) > 0:
+            # Calculate performance metrics
+            try:
+                accuracy = accuracy_score(labels, predictions)
+                precision = precision_score(labels, predictions, zero_division=0)
+                recall = recall_score(labels, predictions, zero_division=0)
+                f1 = f1_score(labels, predictions, zero_division=0)
+                # MCC requires at least two classes in labels
+                mcc = matthews_corrcoef(labels, predictions) if len(np.unique(labels)) > 1 else 0.0
+            except Exception as e: # TODO check for specific excpetion
+                print('error in reward metric computation')
+                print(e)
+        return {
+            'accuracy': accuracy,
+            'precision': precision,
+            'recall': recall,
+            'f1_score': f1,
+            'mcc': mcc
+        }
 
 class Validator(BaseValidatorNeuron):
     """
@@ -64,6 +119,8 @@ class Validator(BaseValidatorNeuron):
             prompt_type='annotation', use_random_diffuser=True, diffuser_name=None)
 
         self._fake_prob = self.config.get('fake_prob', 0.5)
+        
+        self.performance_tracker = MinerPerformanceTracker()
 
     async def forward(self):
         """

@@ -167,3 +167,5 @@ base_miner/UCF/weights/*
 base_miner/UCF/logs/*
 miner_eval.py
 *.env
+
+.DS_Store

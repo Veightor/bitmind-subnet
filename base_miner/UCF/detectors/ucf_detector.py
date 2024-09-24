@@ -2,7 +2,7 @@
 # Source: https://github.com/SCLBD/DeepfakeBench/blob/main/training/detectors/ucf_detector.py
 # author: Zhiyuan Yan
 # email: zhiyuanyan@link.cuhk.edu.cn
-# date: 2023-0706
+# date: 2024-0706
 # description: Class for the UCFDetector
 
 Functions in the Class are summarized as:
@@ -17,11 +17,11 @@ Functions in the Class are summarized as:
 9. forward: Forward-propagation
 
 Reference:
-@article{yan2023ucf,
+@article{yan2024ucf,
   title={UCF: Uncovering Common Features for Generalizable Deepfake Detection},
   author={Yan, Zhiyuan and Zhang, Yong and Fan, Yanbo and Wu, Baoyuan},
   journal={arXiv preprint arXiv:2304.13949},
-  year={2023}
+  year={2024}
 }
 '''
 
