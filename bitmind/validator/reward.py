@@ -136,4 +136,4 @@ def old_get_rewards(
             bt.logging.exception(e)
             miner_rewards.append(0)
 
-    return np.array(miner_rewards)%
+    return np.array(miner_rewards)
