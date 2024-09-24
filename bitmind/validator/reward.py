@@ -28,42 +28,6 @@ from sklearn.metrics import (
     matthews_corrcoef
 )
 
-class MinerPerformanceTracker:
-    def __init__(self):
-        # Stores historical predictions and labels for each miner
-        self.prediction_history: Dict[int, List[int]] = {}
-        self.label_history: Dict[int, List[int]] = {}
-        self.miner_addresses: Dict[int, str] = {}
-
-    def update(self, uid: int, prediction: int, label: int, miner_hotkey: str):
-        # Reset histories if miner is new or miner address has changed
-        if uid not in self.prediction_history or self.miner_addresses[uid] != miner_address:
-            self.prediction_history[uid] = []
-            self.label_history[uid] = []
-            self.miner_addresses[uid] = miner_address
-        # Update histories
-        self.prediction_history[uid].append(prediction)
-        self.label_history[uid].append(label)
-
-    def get_metrics(self, uid: int):
-        predictions = np.array(self.prediction_history[uid])
-        labels = np.array(self.label_history[uid])
-
-        # Calculate performance metrics
-        accuracy = accuracy_score(labels, predictions)
-        precision = precision_score(labels, predictions, zero_division=0)
-        recall = recall_score(labels, predictions, zero_division=0)
-        f1 = f1_score(labels, predictions, zero_division=0)
-        # MCC requires at least two classes in labels
-        mcc = matthews_corrcoef(labels, predictions) if len(np.unique(labels)) > 1 else 0.0
-
-        return {
-            'accuracy': accuracy,
-            'precision': precision,
-            'recall': recall,
-            'f1_score': f1,
-            'mcc': mcc
-        }
 
 def count_penalty(y_pred: float) -> float:
     # Penalize if prediction is not within [0, 1]
@@ -74,7 +38,7 @@ def get_rewards(
         label: float,
         responses: List[float],
         axons: List[bt.Axon],
-        performance_tracker: MinerPerformanceTracker
+        performance_tracker
     ) -> np.array:
     """
     Returns an array of rewards for the given label and miner responses.
@@ -106,7 +70,7 @@ def get_rewards(
             # Get historical performance metrics
             metrics = performance_tracker.get_metrics(uid)
             
-                        # Calculate ramp-up factor (reaches 1.0 at 100 predictions)
+            # Calculate ramp-up factor (reaches 1.0 at 100 predictions)
             ramp_up_factor = min(metrics['num_predictions'] / 100, 1.0)
 
 
