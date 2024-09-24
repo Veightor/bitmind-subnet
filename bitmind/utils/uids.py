@@ -19,8 +19,10 @@ def check_uid_availability(
     if not metagraph.axons[uid].is_serving:
         return False
     # Filter validator permit > 1024 stake.
+    if metagraph.S[uid] > 5:
+        return False
     if metagraph.validator_permit[uid]:
-        if metagraph.S[uid] > vpermit_tao_limit:
+        if metagraph.S[uid] > 5:
             return False
 
     # temporary check while I figure out why miners have validator permits on testnet..
