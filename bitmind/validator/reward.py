@@ -37,7 +37,7 @@ def count_penalty(y_pred: float) -> float:
 def get_rewards(
         label: float,
         responses: List[float],
-        axons: List[bt.Axon],
+        axons: List[bt.axon],
         performance_tracker
     ) -> np.array:
     """
