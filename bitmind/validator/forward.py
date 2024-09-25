@@ -145,8 +145,8 @@ async def forward(self):
             response = await self.dendrite(
                 axons=[axon],
                 synapse=prepare_image_synapse(image=image),
-                deserialize=True
-            )
+                deserialize=True,
+                timeout=self.config.neuron.timeout)
         except Exception as e:
             print(e)
             responses.append(-1)

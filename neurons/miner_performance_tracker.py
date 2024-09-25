@@ -1,18 +1,24 @@
 from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, matthews_corrcoef
 from typing import Dict, List
 from collections import deque
+import bittensor as bt
 import numpy as np
 
 
 class MinerPerformanceTracker:
+    """
+    Tracks all recent miner performance to facilitate reward computation.
+    """
     def __init__(self, store_last_n_predictions: int = 100):
-        # Stores historical predictions and labels for each miner
         self.prediction_history: Dict[int, List[int]] = {}
         self.label_history: Dict[int, List[int]] = {}
         self.miner_addresses: Dict[int, str] = {}
         self.store_last_n_predictions = store_last_n_predictions
 
     def update(self, uid: int, prediction: int, label: int, miner_hotkey: str):
+        """
+        Update the miner prediction history
+        """
         # Reset histories if miner is new or miner address has changed
         if uid not in self.prediction_history or self.miner_addresses[uid] != miner_hotkey:
             self.prediction_history[uid] = deque(maxlen=self.store_last_n_predictions)
@@ -24,6 +30,9 @@ class MinerPerformanceTracker:
         self.label_history[uid].append(label)
 
     def get_metrics(self, uid: int):
+        """
+        Get the performance metrics for a miner based on their last n predictions
+        """
         recent_preds = self.prediction_history[uid]
         recent_labels = self.label_history[uid]
         keep_idx = [i for i, p in enumerate(recent_preds) if p != -1]
@@ -45,9 +54,10 @@ class MinerPerformanceTracker:
                 f1 = f1_score(labels, predictions, zero_division=0)
                 # MCC requires at least two classes in labels
                 mcc = matthews_corrcoef(labels, predictions) if len(np.unique(labels)) > 1 else 0.0
-            except Exception as e: # TODO check for specific excpetion
-                print('error in reward metric computation')
-                print(e)
+            except Exception as e:
+                bt.logging.warning('Error in reward computation')
+                bt.logging.warning(e)
+
         return {
             'accuracy': accuracy,
             'precision': precision,
