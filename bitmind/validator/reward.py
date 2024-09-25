@@ -47,9 +47,10 @@ def get_rewards(
     Args:
     - label (float): The true label (1.0 for fake, 0.0 for real).
     - responses (List[float]): A list of responses from the miners.
+    - uids (List[int]): List of miner UIDs.
+    - axons (List[bt.axon]): List of miner axons.
     - performance_tracker (MinerPerformanceTracker): Tracks historical performance metrics per miner.
-    - minimum_f1_threshold (float): Minimum acceptable F1 score for miners to receive rewards.
-    - minimum_mcc_threshold (float): Minimum acceptable MCC for miners to receive rewards.
+    - num_prev_preds (int): Number of previous predictions to consider for metrics calculation.
 
     Returns:
     - np.array: An array of rewards for the given label and responses.
@@ -78,7 +79,7 @@ def get_rewards(
             # Get historical performance metrics
             metrics = performance_tracker.get_metrics(uid)
             
-            # Calculate ramp-up factor (reaches 1.0 at 100 predictions)
+            # Calculate ramp-up factor (reaches 1.0 at num_prev_preds predictions)
             num_predictions = len(performance_tracker.prediction_history[uid])
             ramp_up_factor = min(num_predictions / num_prev_preds, 1.0)
 

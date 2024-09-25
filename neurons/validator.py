@@ -40,7 +40,7 @@ class Validator(BaseValidatorNeuron):
 
     The BitMind Validator also encapsuluates a ValidatorProxy, which is used to service organic requests from
     our consumer-facing application. If you wish to participate in this system, run your validator with the
-     --proxy.port argument set to an exposed port on your machine.
+    --proxy.port argument set to an exposed port on your machine.
     """
     def __init__(self, config=None):
         super(Validator, self).__init__(config=config)
