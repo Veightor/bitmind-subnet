@@ -6,14 +6,19 @@ import numpy as np
 
 
 class MinerPerformanceTracker:
+    """
+    Tracks all recent miner performance to facilitate reward computation.
+    """
     def __init__(self, store_last_n_predictions: int = 100):
-        # Stores historical predictions and labels for each miner
         self.prediction_history: Dict[int, List[int]] = {}
         self.label_history: Dict[int, List[int]] = {}
         self.miner_addresses: Dict[int, str] = {}
         self.store_last_n_predictions = store_last_n_predictions
 
     def update(self, uid: int, prediction: int, label: int, miner_hotkey: str):
+        """
+        Update the miner prediction history
+        """
         # Reset histories if miner is new or miner address has changed
         if uid not in self.prediction_history or self.miner_addresses[uid] != miner_hotkey:
             self.prediction_history[uid] = deque(maxlen=self.store_last_n_predictions)
@@ -30,7 +35,7 @@ class MinerPerformanceTracker:
         """
         if n_predictions > self.store_last_n_predictions:
             bt.logging.warning(
-                f"n_predictions {n_predictions} is greater than the store_last_n_predictions {self.store_last_n_predictions}.")
+                f"n_predictions {n_predictions} > store_last_n_predictions {self.store_last_n_predictions}.")
 
         recent_preds = self.prediction_history[uid][-n_predictions:]
         recent_labels = self.label_history[uid][-n_predictions:]        
