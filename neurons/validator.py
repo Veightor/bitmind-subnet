@@ -21,10 +21,9 @@ import bittensor as bt
 import wandb
 import time
 
-from neurons.validator_proxy import ValidatorProxy
+from validator_proxy import ValidatorProxy
 from bitmind.validator import forward
 from bitmind.base.validator import BaseValidatorNeuron
-from bitmind.neurons.miner_performance_tracker import MinerPerformanceTracker
 from bitmind.synthetic_image_generation.synthetic_image_generator import SyntheticImageGenerator
 from bitmind.image_dataset import ImageDataset
 from bitmind.constants import DATASET_META, WANDB_PROJECT, WANDB_ENTITY
@@ -65,8 +64,6 @@ class Validator(BaseValidatorNeuron):
             prompt_type='annotation', use_random_diffuser=True, diffuser_name=None)
 
         self._fake_prob = self.config.get('fake_prob', 0.5)
-        
-        self.performance_tracker = MinerPerformanceTracker()
 
     async def forward(self):
         """

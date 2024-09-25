@@ -29,6 +29,7 @@ import bittensor as bt
 from typing import List, Union
 from traceback import print_exception
 
+from neurons.miner_performance_tracker import MinerPerformanceTracker
 from bitmind.base.neuron import BaseNeuron
 from bitmind.base.utils.weight_utils import (
     process_weights_for_netuid,
@@ -53,6 +54,8 @@ class BaseValidatorNeuron(BaseNeuron):
 
     def __init__(self, config=None):
         super().__init__(config=config)
+
+        self.performance_tracker = MinerPerformanceTracker()
 
         # Save a copy of the hotkeys to local memory.
         self.hotkeys = copy.deepcopy(self.metagraph.hotkeys)
@@ -382,7 +385,7 @@ class BaseValidatorNeuron(BaseNeuron):
             hotkeys=self.hotkeys,
         )
         joblib.dump(
-            self.miner_performance_tracker,
+            self.performance_tracker,
             self.config.neuron.full_path + "/miner_performance_tracker.pkl"
         )
 
@@ -395,5 +398,5 @@ class BaseValidatorNeuron(BaseNeuron):
         self.step = state["step"]
         self.scores = state["scores"]
         self.hotkeys = state["hotkeys"]
-        self.miner_performance_tracker = joblib.load(
+        self.performance_tracker = joblib.load(
             self.config.neuron.full_path + "/miner_performance_tracker.pkl")
