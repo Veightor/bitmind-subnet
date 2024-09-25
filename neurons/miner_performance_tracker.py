@@ -23,9 +23,9 @@ class MinerPerformanceTracker:
         self.prediction_history[uid].append(prediction)
         self.label_history[uid].append(label)
 
-    def get_metrics(self, uid: int, n_predictions: int = 100):
-        recent_preds = self.prediction_history[uid][-n_predictions:]
-        recent_labels = self.label_history[uid][-n_predictions:]        
+    def get_metrics(self, uid: int):
+        recent_preds = self.prediction_history[uid]
+        recent_labels = self.label_history[uid]
         keep_idx = [i for i, p in enumerate(recent_preds) if p != -1]
         predictions = np.array([recent_preds[i] for i in keep_idx])
         labels = np.array([recent_labels[i] for i in keep_idx])
