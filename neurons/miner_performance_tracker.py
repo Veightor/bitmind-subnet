@@ -1,21 +1,24 @@
 from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, matthews_corrcoef
 from typing import Dict, List
+from collections import deque
 import numpy as np
 
 
 class MinerPerformanceTracker:
-    def __init__(self):
+    def __init__(self, store_last_n_predictions: int = 100):
         # Stores historical predictions and labels for each miner
         self.prediction_history: Dict[int, List[int]] = {}
         self.label_history: Dict[int, List[int]] = {}
         self.miner_addresses: Dict[int, str] = {}
+        self.store_last_n_predictions = store_last_n_predictions
 
     def update(self, uid: int, prediction: int, label: int, miner_hotkey: str):
         # Reset histories if miner is new or miner address has changed
         if uid not in self.prediction_history or self.miner_addresses[uid] != miner_hotkey:
-            self.prediction_history[uid] = []
-            self.label_history[uid] = []
+            self.prediction_history[uid] = deque(maxlen=self.store_last_n_predictions)
+            self.label_history[uid] = deque(maxlen=self.store_last_n_predictions)
             self.miner_addresses[uid] = miner_hotkey
+
         # Update histories
         self.prediction_history[uid].append(prediction)
         self.label_history[uid].append(label)
