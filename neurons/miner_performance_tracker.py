@@ -58,9 +58,10 @@ class MinerPerformanceTracker:
                 f1 = f1_score(labels, predictions, zero_division=0)
                 # MCC requires at least two classes in labels
                 mcc = matthews_corrcoef(labels, predictions) if len(np.unique(labels)) > 1 else 0.0
-            except Exception as e: # TODO check for specific excpetion
-                print('error in reward metric computation')
-                print(e)
+            except Exception as e:
+                bt.logging.warning('Error in reward computation')
+                bt.logging.warning(e)
+
         return {
             'accuracy': accuracy,
             'precision': precision,
