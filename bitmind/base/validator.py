@@ -23,6 +23,7 @@ import numpy as np
 import asyncio
 import argparse
 import threading
+import joblib
 import bittensor as bt
 
 from typing import List, Union
@@ -380,6 +381,10 @@ class BaseValidatorNeuron(BaseNeuron):
             scores=self.scores,
             hotkeys=self.hotkeys,
         )
+        joblib.dump(
+            self.miner_performance_tracker,
+            self.config.neuron.full_path + "/miner_performance_tracker.pkl"
+        )
 
     def load_state(self):
         """Loads the state of the validator from a file."""
@@ -390,3 +395,5 @@ class BaseValidatorNeuron(BaseNeuron):
         self.step = state["step"]
         self.scores = state["scores"]
         self.hotkeys = state["hotkeys"]
+        self.miner_performance_tracker = joblib.load(
+            self.config.neuron.full_path + "/miner_performance_tracker.pkl")
