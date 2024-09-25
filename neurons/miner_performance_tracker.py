@@ -1,6 +1,7 @@
 from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, matthews_corrcoef
 from typing import Dict, List
 from collections import deque
+import bittensor as bt
 import numpy as np
 
 
@@ -24,6 +25,13 @@ class MinerPerformanceTracker:
         self.label_history[uid].append(label)
 
     def get_metrics(self, uid: int, n_predictions: int = 100):
+        """
+        Get the performance metrics for a miner based on their last n predictions
+        """
+        if n_predictions > self.store_last_n_predictions:
+            bt.logging.warning(
+                f"n_predictions {n_predictions} is greater than the store_last_n_predictions {self.store_last_n_predictions}.")
+
         recent_preds = self.prediction_history[uid][-n_predictions:]
         recent_labels = self.label_history[uid][-n_predictions:]        
         keep_idx = [i for i, p in enumerate(recent_preds) if p != -1]
