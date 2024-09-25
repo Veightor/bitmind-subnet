@@ -39,7 +39,8 @@ def get_rewards(
         responses: List[float],
         uids: List[int],
         axons: List[bt.axon],
-        performance_tracker
+        performance_tracker,
+        num_prev_preds: int = 100
     ) -> np.array:
     """
     Returns an array of rewards for the given label and miner responses.
