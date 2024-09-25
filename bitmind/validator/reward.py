@@ -82,7 +82,7 @@ def get_rewards(
             
             # Calculate ramp-up factor (reaches 1.0 at num_prev_preds predictions)
             num_predictions = len(performance_tracker.prediction_history[uid])
-            ramp_up_factor = min(num_predictions / num_prev_preds, 1.0)
+            ramp_up_factor = min(num_predictions / 100, 1.0)
 
             # Calculate current reward as a linear combination of metrics
             reward = (
