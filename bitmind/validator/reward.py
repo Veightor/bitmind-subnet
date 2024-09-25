@@ -55,17 +55,9 @@ def get_rewards(
     - np.array: An array of rewards for the given label and responses.
     """
     miner_rewards = []
-    for axon, uid in zip(axons, uids):
+    for axon, uid, pred_prob in zip(axons, uids, responses):
         try:
             miner_hotkey = axon.hotkey
-            
-            # Check if the uid is within the range of responses
-            if uid >= len(responses):
-                bt.logging.error(f"UID {uid} is out of range for responses. Skipping this miner.")
-                miner_rewards.append(0.0)
-                continue
-
-            pred_prob = responses[uid]
             
             # Apply penalty if prediction is invalid
             penalty = count_penalty(pred_prob)
@@ -80,7 +72,7 @@ def get_rewards(
             
             # Calculate ramp-up factor (reaches 1.0 at 100 predictions)
             num_predictions = len(performance_tracker.prediction_history[uid])
-            ramp_up_factor = min(num_predictions / num_prev_preds, 1.0)
+            ramp_up_factor = min(num_predictions / performance_tracker.store_last_n_predictions, 1.0)
 
             # Calculate current reward as a linear combination of metrics
             reward = (
