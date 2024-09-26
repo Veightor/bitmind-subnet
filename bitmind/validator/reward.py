@@ -65,10 +65,8 @@ def get_rewards(
                 performance_tracker.reset_miner_history(uid, miner_hotkey)
 
             # Apply penalty if prediction is invalid
-            penalty = count_penalty(pred_prob)
             pred = int(np.round(pred_prob))
             true_label = int(label)
-
             # Update miner's performance history
             performance_tracker.update(uid, pred, true_label, miner_hotkey)
 
@@ -98,10 +96,13 @@ def get_rewards(
                 0.2 * metrics_10['f1_score'] +
                 0.2 * metrics_10['mcc']
             )
+            
+            correct = 1 if pred == true_label else 0
 
-            # Calculate final reward: 20% from 100-prediction window, 80% from 10-prediction window
-            reward = 0.2 * reward_100 + 0.8 * reward_10
-
+            # Calculate final reward: 20% from 100-prediction window, 50% from 10-prediction window, 30% from correctness
+            reward = 0.2 * reward_100 + 0.5 * reward_10 + 0.3 * correct
+            penalty = count_penalty(pred_prob)
+            penalty *= 0 if metrics_100['accuracy'] < 0.75 else 1
             # Apply penalty
             reward *= penalty
 
