@@ -59,6 +59,11 @@ def get_rewards(
         try:
             miner_hotkey = axon.hotkey
             
+            # Check if the miner hotkey has changed
+            if uid in performance_tracker.miner_addresses and performance_tracker.miner_addresses[uid] != miner_hotkey:
+                bt.logging.info(f"Miner hotkey changed for UID {uid}. Resetting performance metrics.")
+                performance_tracker.reset_miner_history(uid, miner_hotkey)
+
             # Apply penalty if prediction is invalid
             penalty = count_penalty(pred_prob)
             pred = int(np.round(pred_prob))

@@ -15,15 +15,21 @@ class MinerPerformanceTracker:
         self.miner_addresses: Dict[int, str] = {}
         self.store_last_n_predictions = store_last_n_predictions
 
+    def reset_miner_history(self, uid: int, miner_hotkey: str):
+        """
+        Reset the history for a miner.
+        """
+        self.prediction_history[uid] = deque(maxlen=self.store_last_n_predictions)
+        self.label_history[uid] = deque(maxlen=self.store_last_n_predictions)
+        self.miner_addresses[uid] = miner_hotkey
+
     def update(self, uid: int, prediction: int, label: int, miner_hotkey: str):
         """
         Update the miner prediction history
         """
         # Reset histories if miner is new or miner address has changed
         if uid not in self.prediction_history or self.miner_addresses.get(uid) != miner_hotkey:
-            self.prediction_history[uid] = deque(maxlen=self.store_last_n_predictions)
-            self.label_history[uid] = deque(maxlen=self.store_last_n_predictions)
-            self.miner_addresses[uid] = miner_hotkey
+            self.reset_miner_history(uid, miner_hotkey)
 
         # Update histories
         self.prediction_history[uid].append(prediction)
@@ -47,7 +53,9 @@ class MinerPerformanceTracker:
         recent_preds = list(self.prediction_history[uid])
         recent_labels = list(self.label_history[uid])
 
+        # If window is larger than available data, use all available data
         if window is not None:
+            window = min(window, len(recent_preds))
             recent_preds = recent_preds[-window:]
             recent_labels = recent_labels[-window:]
 
@@ -87,3 +95,17 @@ class MinerPerformanceTracker:
             'f1_score': 0,
             'mcc': 0
         }
+
+    def get_prediction_count(self, uid: int) -> int:
+        """
+        Get the number of predictions made by a specific miner.
+
+        Args:
+        - uid (int): The unique identifier of the miner
+
+        Returns:
+        - int: The number of predictions made by the miner
+        """
+        if uid not in self.prediction_history:
+            return 0
+        return len(self.prediction_history[uid])
