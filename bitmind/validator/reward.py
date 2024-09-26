@@ -60,7 +60,7 @@ def get_rewards(
             miner_hotkey = axon.hotkey
             
             # Check if the miner hotkey has changed
-            if uid in performance_tracker.miner_addresses and performance_tracker.miner_addresses[uid] != miner_hotkey:
+            if uid in performance_tracker.miner_hotkeys and performance_tracker.miner_hotkeys[uid] != miner_hotkey:
                 bt.logging.info(f"Miner hotkey changed for UID {uid}. Resetting performance metrics.")
                 performance_tracker.reset_miner_history(uid, miner_hotkey)
 

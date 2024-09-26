@@ -12,7 +12,7 @@ class MinerPerformanceTracker:
     def __init__(self, store_last_n_predictions: int = 100):
         self.prediction_history: Dict[int, deque] = {}
         self.label_history: Dict[int, deque] = {}
-        self.miner_addresses: Dict[int, str] = {}
+        self.miner_hotkeys: Dict[int, str] = {}
         self.store_last_n_predictions = store_last_n_predictions
 
     def reset_miner_history(self, uid: int, miner_hotkey: str):
@@ -21,14 +21,14 @@ class MinerPerformanceTracker:
         """
         self.prediction_history[uid] = deque(maxlen=self.store_last_n_predictions)
         self.label_history[uid] = deque(maxlen=self.store_last_n_predictions)
-        self.miner_addresses[uid] = miner_hotkey
+        self.miner_hotkeys[uid] = miner_hotkey
 
     def update(self, uid: int, prediction: int, label: int, miner_hotkey: str):
         """
         Update the miner prediction history
         """
         # Reset histories if miner is new or miner address has changed
-        if uid not in self.prediction_history or self.miner_addresses.get(uid) != miner_hotkey:
+        if uid not in self.prediction_history or self.miner_hotkeys.get(uid) != miner_hotkey:
             self.reset_miner_history(uid, miner_hotkey)
 
         # Update histories
