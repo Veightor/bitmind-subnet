@@ -10,8 +10,8 @@ class MinerPerformanceTracker:
     Tracks all recent miner performance to facilitate reward computation.
     """
     def __init__(self, store_last_n_predictions: int = 100):
-        self.prediction_history: Dict[int, List[int]] = {}
-        self.label_history: Dict[int, List[int]] = {}
+        self.prediction_history: Dict[int, deque] = {}
+        self.label_history: Dict[int, deque] = {}
         self.miner_addresses: Dict[int, str] = {}
         self.store_last_n_predictions = store_last_n_predictions
 
@@ -20,7 +20,7 @@ class MinerPerformanceTracker:
         Update the miner prediction history
         """
         # Reset histories if miner is new or miner address has changed
-        if uid not in self.prediction_history or self.miner_addresses[uid] != miner_hotkey:
+        if uid not in self.prediction_history or self.miner_addresses.get(uid) != miner_hotkey:
             self.prediction_history[uid] = deque(maxlen=self.store_last_n_predictions)
             self.label_history[uid] = deque(maxlen=self.store_last_n_predictions)
             self.miner_addresses[uid] = miner_hotkey
@@ -29,34 +29,44 @@ class MinerPerformanceTracker:
         self.prediction_history[uid].append(prediction)
         self.label_history[uid].append(label)
 
-    def get_metrics(self, uid: int):
+    def get_metrics(self, uid: int, window: int = None):
         """
         Get the performance metrics for a miner based on their last n predictions
+
+        Args:
+        - uid (int): The unique identifier of the miner
+        - window (int, optional): The number of recent predictions to consider. 
+        - If None, all stored predictions are used.
+
+        Returns:
+        - dict: A dictionary containing various performance metrics
         """
-        recent_preds = self.prediction_history[uid]
-        recent_labels = self.label_history[uid]
+        if uid not in self.prediction_history:
+            return self._empty_metrics()
+
+        recent_preds = list(self.prediction_history[uid])
+        recent_labels = list(self.label_history[uid])
+
+        if window is not None:
+            recent_preds = recent_preds[-window:]
+            recent_labels = recent_labels[-window:]
+
         keep_idx = [i for i, p in enumerate(recent_preds) if p != -1]
         predictions = np.array([recent_preds[i] for i in keep_idx])
         labels = np.array([recent_labels[i] for i in keep_idx])
 
-        accuracy = 0
-        precision = 0
-        recall = 0
-        f1 = 0
-        mcc = 0
+        if len(labels) == 0 or len(predictions) == 0:
+            return self._empty_metrics()
 
-        if len(labels) > 0 and len(predictions) > 0:
-            # Calculate performance metrics
-            try:
-                accuracy = accuracy_score(labels, predictions)
-                precision = precision_score(labels, predictions, zero_division=0)
-                recall = recall_score(labels, predictions, zero_division=0)
-                f1 = f1_score(labels, predictions, zero_division=0)
-                # MCC requires at least two classes in labels
-                mcc = matthews_corrcoef(labels, predictions) if len(np.unique(labels)) > 1 else 0.0
-            except Exception as e:
-                bt.logging.warning('Error in reward computation')
-                bt.logging.warning(e)
+        try:
+            accuracy = accuracy_score(labels, predictions)
+            precision = precision_score(labels, predictions, zero_division=0)
+            recall = recall_score(labels, predictions, zero_division=0)
+            f1 = f1_score(labels, predictions, zero_division=0)
+            mcc = matthews_corrcoef(labels, predictions) if len(np.unique(labels)) > 1 else 0.0
+        except Exception as e:
+            bt.logging.warning(f'Error in reward computation: {e}')
+            return self._empty_metrics()
 
         return {
             'accuracy': accuracy,
@@ -64,4 +74,16 @@ class MinerPerformanceTracker:
             'recall': recall,
             'f1_score': f1,
             'mcc': mcc
+        }
+
+    def _empty_metrics(self):
+        """
+        Return a dictionary of empty metrics
+        """
+        return {
+            'accuracy': 0,
+            'precision': 0,
+            'recall': 0,
+            'f1_score': 0,
+            'mcc': 0
         }

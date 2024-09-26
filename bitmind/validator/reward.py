@@ -40,7 +40,6 @@ def get_rewards(
         uids: List[int],
         axons: List[bt.axon],
         performance_tracker,
-        num_prev_preds: int = 100
     ) -> np.array:
     """
     Returns an array of rewards for the given label and miner responses.
@@ -51,7 +50,6 @@ def get_rewards(
     - uids (List[int]): List of miner UIDs.
     - axons (List[bt.axon]): List of miner axons.
     - performance_tracker (MinerPerformanceTracker): Tracks historical performance metrics per miner.
-    - num_prev_preds (int): Number of previous predictions to consider for metrics calculation.
 
     Returns:
     - np.array: An array of rewards for the given label and responses.
@@ -69,37 +67,58 @@ def get_rewards(
             # Update miner's performance history
             performance_tracker.update(uid, pred, true_label, miner_hotkey)
 
-            # Get historical performance metrics
-            metrics = performance_tracker.get_metrics(uid)
+            # Get historical performance metrics for two time windows
+            metrics_100 = performance_tracker.get_metrics(uid, window=100)
+            metrics_10 = performance_tracker.get_metrics(uid, window=10)
             
-            # Calculate ramp-up factor (reaches 1.0 at num_prev_preds predictions)
-            num_predictions = len(performance_tracker.prediction_history[uid])
-            ramp_up_factor = min(num_predictions / performance_tracker.store_last_n_predictions, 1.0)
+            # Check if the miner is new (less than 50 predictions)
+            is_new_miner = performance_tracker.get_prediction_count(uid) < 50
 
-            # Calculate current reward as a linear combination of metrics
-            reward = (
-                0.2 * metrics['accuracy'] +
-                0.2 * metrics['precision'] +
-                0.2 * metrics['recall'] +
-                0.2 * metrics['f1_score'] +
-                0.2 * metrics['mcc']
+            # Calculate rewards for both time windows
+            if is_new_miner:
+                reward_100 = 1.0  # Perfect score for new miners
+            else:
+                reward_100 = (
+                    0.2 * metrics_100['accuracy'] +
+                    0.2 * metrics_100['precision'] +
+                    0.2 * metrics_100['recall'] +
+                    0.2 * metrics_100['f1_score'] +
+                    0.2 * metrics_100['mcc']
+                )
+            
+            reward_10 = (
+                0.2 * metrics_10['accuracy'] +
+                0.2 * metrics_10['precision'] +
+                0.2 * metrics_10['recall'] +
+                0.2 * metrics_10['f1_score'] +
+                0.2 * metrics_10['mcc']
             )
 
-            # Apply penalty and ramp-up factor
-            reward *= ramp_up_factor * penalty
+            # Calculate final reward: 20% from 100-prediction window, 80% from 10-prediction window
+            reward = 0.2 * reward_100 + 0.8 * reward_10
+
+            # Apply penalty
+            reward *= penalty
 
             miner_rewards.append(reward)
 
             # Optionally, log metrics for debugging
             bt.logging.debug(f"""
             Miner {uid} Performance:
-            Accuracy:  {metrics['accuracy']:.4f}
-            Precision: {metrics['precision']:.4f}
-            Recall:    {metrics['recall']:.4f}
-            F1 Score:  {metrics['f1_score']:.4f}
-            MCC:       {metrics['mcc']:.4f}
+            100-prediction window:
+                Accuracy:  {metrics_100['accuracy']:.4f}
+                Precision: {metrics_100['precision']:.4f}
+                Recall:    {metrics_100['recall']:.4f}
+                F1 Score:  {metrics_100['f1_score']:.4f}
+                MCC:       {metrics_100['mcc']:.4f}
+            10-prediction window:
+                Accuracy:  {metrics_10['accuracy']:.4f}
+                Precision: {metrics_10['precision']:.4f}
+                Recall:    {metrics_10['recall']:.4f}
+                F1 Score:  {metrics_10['f1_score']:.4f}
+                MCC:       {metrics_10['mcc']:.4f}
             Penalty:   {penalty:.4f}
-            Reward:    {reward:.4f}
+            Final Reward: {reward:.4f}
             """)
             
         except Exception as e:
