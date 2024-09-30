@@ -146,7 +146,7 @@ def old_get_rewards(
         try:
             pred = responses[uid]
             reward = 1. if np.round(pred) == label else 0.
-            reward *= count_penalty(pred)
+            reward *= count_penalty(pred, 1.)
             miner_rewards.append(reward)
 
         except Exception as e:
