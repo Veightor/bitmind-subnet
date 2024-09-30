@@ -78,16 +78,7 @@ def get_rewards(
             is_new_miner = performance_tracker.get_prediction_count(uid) < 50
 
             # Calculate rewards for both time windows
-            if is_new_miner:
-                reward_100 = 1.0  # Perfect score for new miners
-            else:
-                reward_100 = (
-                    0.2 * metrics_100['accuracy'] +
-                    0.2 * metrics_100['precision'] +
-                    0.2 * metrics_100['recall'] +
-                    0.2 * metrics_100['f1_score'] +
-                    0.2 * metrics_100['mcc']
-                )
+            reward_100 = 1.0 if is_new_miner else sum(0.2 * metrics_100[m] for m in ['accuracy', 'precision', 'recall', 'f1_score', 'mcc'])
             
             reward_10 = (
                 0.2 * metrics_10['accuracy'] +
@@ -99,10 +90,11 @@ def get_rewards(
             
             correct = 1 if pred == true_label else 0
 
-            # Calculate final reward: 20% from 100-prediction window, 50% from 10-prediction window, 30% from correctness
-            reward = 0.2 * reward_100 + 0.5 * reward_10 + 0.3 * correct
+            # Calculate final reward: 20% from 10-prediction window, 80% from correctness
+            reward = 0.2 * reward_10 + 0.8 * correct
             penalty = count_penalty(pred_prob)
-            penalty *= 0 if metrics_100['accuracy'] < 0.75 else 1
+            penalty *= 0 if metrics_100['accuracy'] < 0.80 else 1
+
             # Apply penalty
             reward *= penalty
 
