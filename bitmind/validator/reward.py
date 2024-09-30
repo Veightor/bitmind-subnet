@@ -29,10 +29,11 @@ from sklearn.metrics import (
 )
 
 
-def count_penalty(y_pred: float) -> float:
+def count_penalty(y_pred: float, historical_performance: float) -> float:
     # Penalize if prediction is not within [0, 1]
     bad = (y_pred < 0.0) or (y_pred > 1.0)
-    return 0.0 if bad else 1.0
+    low_accuracy = historical_performance < 0.80
+    return 0.0 if bad or low_accuracy else 1.0
 
 def get_rewards(
         label: float,
@@ -77,7 +78,7 @@ def get_rewards(
             # Check if the miner is new (less than 50 predictions)
             is_new_miner = performance_tracker.get_prediction_count(uid) < 50
 
-            # Calculate rewards for both time windows
+            # Calculate rewards for different time windows
             reward_100 = 1.0 if is_new_miner else sum(0.2 * metrics_100[m] for m in ['accuracy', 'precision', 'recall', 'f1_score', 'mcc'])
             
             reward_10 = (
@@ -88,14 +89,13 @@ def get_rewards(
                 0.2 * metrics_10['mcc']
             )
             
-            correct = 1 if pred == true_label else 0
+            correct = 1. if pred == true_label else 0.
 
             # Calculate final reward: 20% from 10-prediction window, 80% from correctness
             reward = 0.2 * reward_10 + 0.8 * correct
-            penalty = count_penalty(pred_prob)
-            penalty *= 0 if metrics_100['accuracy'] < 0.80 else 1
-
-            # Apply penalty
+            
+            # Calculate and apply penalty
+            penalty = count_penalty(pred_prob, reward_100)
             reward *= penalty
 
             miner_rewards.append(reward)
