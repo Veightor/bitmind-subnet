@@ -32,7 +32,7 @@ from sklearn.metrics import (
 def count_penalty(y_pred: float, historical_performance: float) -> float:
     # Penalize if prediction is not within [0, 1]
     bad = (y_pred < 0.0) or (y_pred > 1.0)
-    low_accuracy = historical_performance < 0.80
+    low_accuracy = historical_performance < 0.60
     return 0.0 if bad or low_accuracy else 1.0
 
 def get_rewards(
