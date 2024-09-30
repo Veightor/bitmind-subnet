@@ -101,7 +101,7 @@ def get_rewards(
             miner_rewards.append(reward)
 
             # Optionally, log metrics for debugging
-            bt.logging.debug(f"""
+            bt.logging.info(f"""
             Miner {uid} Performance:
             100-prediction window:
                 Accuracy:  {metrics_100['accuracy']:.4f}
@@ -115,6 +115,7 @@ def get_rewards(
                 Recall:    {metrics_10['recall']:.4f}
                 F1 Score:  {metrics_10['f1_score']:.4f}
                 MCC:       {metrics_10['mcc']:.4f}
+            Historical:    {reward_100:.4f}
             Penalty:   {penalty:.4f}
             Final Reward: {reward:.4f}
             """)
